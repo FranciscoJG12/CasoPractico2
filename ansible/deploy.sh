@@ -1,5 +1,5 @@
 #!/bin/bash
-# Ejecucion de playhooks para configuracion de los servidores nfs, workers y master
+# Ejecucion de playbooks para configuracion de los servidores nfs, workers y master
 #
 echo "Inicia instalacion y actualizacion de los nodos. "
 ansible-playbook -i hosts install-common.yaml
