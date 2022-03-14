@@ -1,0 +1,76 @@
+---
+
+- name: Configuramos el firewall para acceder a los servicios de kubernetes
+  firewalld:
+    port: "{{ item }}"
+    permanent: yes
+    state: enabled
+  become: yes
+  with_items:
+    - "{{ firewall_ports }}"
+
+- name: Reload service firewalld
+  systemd:
+    name: firewalld
+    state: reloaded
+
+- name: Configuramos kudeadm
+  ansible.builtin.shell: kubeadm config images pull
+  
+- name: Permitir el acceso de los workers
+  firewalld:
+    rich_rule: rule family=ipv4 source address="{{ item }}" accept
+    permanent: yes
+    state: enabled
+  become: yes
+  with_items:
+    - "{{ ipworkers }}"
+
+- name: Reload service firewalld
+  systemd:
+    name: firewalld
+    state: reloaded
+
+- name: Reiniciamosss kudeadm
+  command: kubeadm reset -f
+  become: yes
+
+- name: Iniciamos kudeadm
+  command: kubeadm init --pod-network-cidr 10.1.0.0/16
+  become: yes
+
+- name: Configuracion usuario root
+  shell: |
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+  become: yes  
+
+- name: autoriza a root para acceder al cluster
+  shell: |
+    mkdir -p /root/.kube
+  become: yes
+
+- name: copia archivo
+  shell: |
+    cp /etc/kubernetes/admin.conf /root/.kube/config
+  become: yes
+  
+- name: Autorización al user root
+  shell: |
+   chown $(id -u):$(id -g) /root/.kube/config
+  become: yes  
+  
+- name: ver nodos Kubernetes
+  shell: |
+    kubectl get nodes > /tmp/VerNodosKubernetes.txt
+  become: yes  
+
+- name: Obtenemos token
+  command: kubeadm token create --print-join-command
+  become: yes
+  register: join_token
+
+- name: Almacenamos la respuesta en un archivo
+  copy:
+    dest: "/tmp/token1"
+    content: |
+      {{ join_token.stdout }}

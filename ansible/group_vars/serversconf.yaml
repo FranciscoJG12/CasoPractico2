@@ -1,0 +1,9 @@
+
+---
+ips_etc_hosts: ['10.0.1.10 vmmasterunir180 vmmasterunir180.eastus.cloudapp.azure.com', '10.0.1.11 vmworker1unir180 vmworker1unir180.eastus.cloudapp.azure.com', '10.0.1.12 vmworker2unir180 vmworker2unir180.eastus.cloudapp.azure.com','10.0.1.13 vmnfsunir180 vmnfsunir180.eastus.cloudapp.azure.com']
+
+rpmskube: ['kubelet', 'kubeadm', 'kubectl']
+
+services: ['chronyd', 'firewalld']
+
+

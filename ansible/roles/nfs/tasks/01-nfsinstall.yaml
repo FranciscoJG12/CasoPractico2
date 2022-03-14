@@ -1,0 +1,56 @@
+---
+- name: install packages
+  dnf:
+    name: "{{ rpms }}"
+    state: latest
+  become: yes
+
+- name: enable services
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+    masked: no
+  become: yes
+  with_items:
+    - "{{ services }}"
+
+- name: Create a directory if it does not exist
+  file:
+    path: /srv/nfs
+    state: directory
+    mode: '0755'
+  become: yes
+    
+- name: Agrega una linea al archivo /etc/exports
+  lineinfile:
+    path: /etc/exports
+    line: "{{ item }}"
+  become: yes
+  with_items:
+    - "{{ ips_nfs }}"    
+    
+- name: Consulta de los File System 
+  shell : df -hP > /tmp/verArchivo.txt    
+  
+- name: Releemos el fichero /etc/exports para aplicar la nueva configuración
+  command: exportfs -r
+  become: yes
+  
+- name: Releemos el fichero /etc/exports para aplicar la nueva configuración
+  command: exportfs -s
+  become: yes  
+
+- name: permit traffic service
+  firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    state: enabled
+  become: yes
+  with_items:
+    - "{{ firewallservices }}"
+    
+- name: Reload service firewalld
+  systemd:
+    name: firewalld
+    state: reloaded

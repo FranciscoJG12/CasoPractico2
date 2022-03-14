@@ -1,0 +1,26 @@
+---
+
+- name: update dnf
+  command: "/usr/bin/dnf update -y"
+  become: yes
+  
+- name: install packages
+  dnf:
+    name: "{{ rpms }}"
+    state: latest
+  become: yes
+ 
+- name: Set timezone America
+  timezone:
+    name: America/Bogota
+       
+- name: dnf chrony
+  command: "/usr/bin/dnf install chrony -y"
+  become: yes
+  
+- name: deshabilitar selinux
+  replace:
+    path: /etc/selinux/config
+    regexp: 'SELINUX=enforcing'
+    replace: 'SELINUX=disabled'
+ 

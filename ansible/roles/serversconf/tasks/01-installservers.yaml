@@ -1,0 +1,78 @@
+---
+- name: agregar a /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item }}"
+  become: yes
+  with_items:
+    - "{{ ips_etc_hosts }}"
+
+- name: Reiniciar servicio de firewall
+  systemd:
+    name: firewalld
+    state: restarted
+  become: yes
+  
+- name: Add the br_netfilter module
+  modprobe:
+    name: br_netfilter
+  become: yes
+  
+- name: Activar transparent masquerading
+  firewalld:
+    masquerade: yes
+    state: enabled
+    permanent: yes
+  become: yes  
+
+- name: Reload service firewalld
+  systemd:
+    name: firewalld
+    state: reloaded  
+  become: yes
+  
+- name: update settings net.bridge.bridge-nf-call-ip6tables
+  become: yes
+  sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    sysctl_file: "/etc/sysctl.d/k8s.conf"
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  
+- name: update settings net.bridge.bridge-nf-call-iptables
+  become: yes
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    sysctl_file: "/etc/sysctl.d/k8s.conf"
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+    
+- name: update net.ipv4.ip_forward
+  become: yes
+  sysctl:
+    name: net.ipv4.ip_forward
+    sysctl_file: "/etc/sysctl.d/k8s.conf"
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+    
+- name: desactivate swap 
+  become: yes
+  shell: swapoff  -a    
+  
+- name: ver que se desactivo el swap 
+  become: yes 
+  shell: free -m > /tmp/verswapoffDesactivado.txt
+  
+- name: Elimina una linea del archivo fstab
+  become: yes
+  lineinfile:
+    path: /etc/fstab
+    regexp: '^%cs-swap' 
+    state: absent
+    backup: no

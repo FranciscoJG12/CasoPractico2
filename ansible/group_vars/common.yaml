@@ -1,0 +1,7 @@
+
+---
+
+rpms: ['wget', 'nfs-utils', 'nfs4-acl-tools']
+
+services: ['chronyd', 'firewalld']
+
